@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 import discord
+from discord.ext import commands
 
 from architecture.base import BaseModule
 from architecture.registry import get_module_class
@@ -26,10 +27,10 @@ class ModuleManager:
 
     def _discover_modules(self) -> None:
         """
-        Discovers and imports all Python architecture
+        Discovers and imports all Python modules
         :return:
         """
-        modules_dir = Path(__file__).parent.parent.parent / "architecture"
+        modules_dir = Path(__file__).parent.parent / "modules"
         for module_path in modules_dir.rglob("module.py"):
             relative_path = module_path.relative_to(modules_dir.parent)
             module_name = str(relative_path.with_suffix("")).replace("/", ".")
@@ -129,8 +130,35 @@ class ModuleManager:
             module_class = get_module_class(module_name)
             module_instance = module_class()
             module_instance.bot = self.bot
-            await module_instance._setup()
+            await module_instance.setup()
+            await self._load_module_extensions(module_name)
             self.enabled_modules[module_name] = module_instance
+
+    async def _load_module_extensions(self, module_name: str) -> None:
+        """
+        Automatically loads all extensions (cogs) from a module's directory
+        :param module_name:
+        :return:
+        """
+        project_root = Path(__file__).parent.parent
+        modules_dir = project_root / "modules" / module_name
+        if not modules_dir.exists():
+            return
+
+        for extension in modules_dir.rglob("*.py"):
+            if (
+                extension.stem.startswith("__")
+                or extension.stem == "module"
+                or any(folder in extension.parts for folder in (".venv", "venv", "__pycache__"))
+            ):
+                continue
+
+            relative_path = extension.relative_to(project_root)
+            ext_path = ".".join(relative_path.with_suffix("").parts)
+            try:
+                await self.bot.load_extension(ext_path)
+            except commands.NoEntryPointError:
+                continue
 
     async def disable_module(self, module_name: str) -> None:
         """
