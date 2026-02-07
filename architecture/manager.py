@@ -130,8 +130,8 @@ class ModuleManager:
             module_class = get_module_class(module_name)
             module_instance = module_class()
             module_instance.bot = self.bot
-            await module_instance.setup()
             await self._load_module_extensions(module_name)
+            await module_instance._setup()
             self.enabled_modules[module_name] = module_instance
 
     async def _load_module_extensions(self, module_name: str) -> None:

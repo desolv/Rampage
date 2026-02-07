@@ -10,11 +10,10 @@ from modules.rampage.module import RampageModule
 
 load_dotenv()
 
-ENABLED_MODULES = ["core", "example"]
+ENABLED_MODULES = ["example"]
 
 GUILD_ENABLED_MODULES = {
-    1398060488235024504: {"core", "example"},
-    987654321098765432: {"core"},
+    1398060488235024504: {"example"},
 }
 
 
