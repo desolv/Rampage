@@ -129,7 +129,7 @@ class ModuleManager:
             module_class = get_module_class(module_name)
             module_instance = module_class()
             module_instance.bot = self.bot
-            await module_instance.setup()
+            await module_instance._setup()
             self.enabled_modules[module_name] = module_instance
 
     async def disable_module(self, module_name: str) -> None:
@@ -142,7 +142,7 @@ class ModuleManager:
             raise ValueError(f"Module '{module_name}' is not enabled!")
 
         module_instance = self.enabled_modules[module_name]
-        await module_instance.teardown()
+        await module_instance._teardown()
         del self.enabled_modules[module_name]
 
     def is_enabled_for_guild(self, module_name: str, guild_id: int) -> bool:
